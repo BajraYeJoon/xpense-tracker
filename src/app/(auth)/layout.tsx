@@ -7,7 +7,12 @@ function layout({ children }: { children: React.ReactNode }) {
       {/* Logo */}
       <div className="flex justify-center items-center ">
         <Wallet size={30} className="text-blue-300" />
-        <Image src={logo} alt="Xpense Logo" width={200} />
+        <Image
+          src={logo}
+          alt="Xpense Logo"
+          width={200}
+          className="object-contain"
+        />
       </div>
       <div className="">{children}</div>
     </div>

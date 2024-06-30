@@ -70,9 +70,13 @@ function MobileNavbar() {
             <Menu />
           </Button>
         </SheetTrigger>
-        <SheetContent className="w-[400px] sm:w-[540px]" side="left">
+        <SheetContent className="w-72 sm:w-[540px] pt-8" side="left">
           {navItems.map((item, index) => (
-            <NavbarItem key={index} {...item} />
+            <NavbarItem
+              key={index}
+              {...item}
+              onClick={() => setIsOpen((prev) => !prev)}
+            />
           ))}
         </SheetContent>
       </Sheet>
@@ -98,7 +102,15 @@ const DesktopNavbar = () => (
   </header>
 );
 
-function NavbarItem({ label, link }: { label: string; link: string }) {
+function NavbarItem({
+  label,
+  link,
+  onClick,
+}: {
+  label: string;
+  link: string;
+  onClick?: () => void;
+}) {
   const pathname = usePathname();
   const isActive = pathname === link;
   return (
@@ -110,6 +122,9 @@ function NavbarItem({ label, link }: { label: string; link: string }) {
           "w-full justify-start text-base text-muted-foreground hover:text-foreground",
           isActive && "text-foreground"
         )}
+        onClick={() => {
+          if (onClick) onClick();
+        }}
       >
         {label}
       </Link>

@@ -12,7 +12,7 @@ import {
 
 import { Button } from "../ui/button";
 
-export function ModeToggle() {
+export function ThemeSwitcher() {
   const { setTheme } = useTheme();
 
   return (

@@ -1,9 +1,11 @@
 "use client";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeSwitcher } from "@/components/global/mode-toggle";
 
 export const navitems = [
   {
@@ -30,10 +32,13 @@ const Navbar = () => {
 
 function DesktopNavbar() {
   return (
-    <nav className="hidden border-separate border-b bg-background md:block">
-      <nav className="container flex items-center justify-between px-8">
-        <div className="flex h-20 min-h-14 items-center gap-x-4">
-          <div className="overflow-hidden h-24 w-24 flex justify-center items-center">
+    <nav className="hidden  bg-background md:block">
+      <nav className=" flex items-center justify-between gap-2">
+        <div className="flex h-16 min-h-14 items-center gap-x-4">
+          <Link
+            href="/"
+            className="overflow-hidden h-24 w-24 flex justify-center items-center"
+          >
             <Image
               src={"/xpense-logo.svg"}
               alt="Xpense Logo"
@@ -41,12 +46,16 @@ function DesktopNavbar() {
               width={500}
               height={100}
             />
-          </div>
+          </Link>
           <div className="flex h-full">
             {navitems.map((item, index) => (
               <NavbarItem key={index} {...item} />
             ))}
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher />
+          <UserButton afterSignOutUrl="/sign-in" />
         </div>
       </nav>
     </nav>
@@ -64,12 +73,15 @@ function NavbarItem({ label, link }: { label: string; link: string }) {
           buttonVariants({
             variant: "ghost",
           }),
-          "w-full justify-start text-lg text-muted-foreground hover:text-foreground",
-          isActive && "text-foreground"
+          "w-full justify-start text-base text-muted-foreground hover:text-foreground",
+          isActive && "text-foreground "
         )}
       >
         {label}
       </Link>
+      {isActive && (
+        <div className="absolute -bottom-[2px] left-1/2 hidden h-[2px] w-4/5 -translate-x-1/2 rounded-xl bg-foreground md:block"></div>
+      )}
     </div>
   );
 }

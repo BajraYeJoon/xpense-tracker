@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning={true}>
         <body className={jost.className}>
           <ThemeProvider
             attribute="class"
@@ -28,7 +28,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <main className="mx-auto w-full max-w-screen-2xl px-2.5 md:px-20">
+            <main className="container mx-auto w-full max-w-screen-2xl px-2.5 md:px-20">
               {children}
             </main>
           </ThemeProvider>

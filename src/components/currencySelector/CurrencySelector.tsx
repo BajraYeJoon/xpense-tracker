@@ -14,79 +14,128 @@ import {
 } from "../ui/command";
 import { Drawer, DrawerContent, DrawerTrigger } from "../ui/drawer";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-
-type Status = {
-  value: string;
-  label: string;
-};
-
-const statuses: Status[] = [
-  {
-    value: "backlog",
-    label: "Backlog",
-  },
-  {
-    value: "todo",
-    label: "Todo",
-  },
-  {
-    value: "in progress",
-    label: "In Progress",
-  },
-  {
-    value: "done",
-    label: "Done",
-  },
-  {
-    value: "canceled",
-    label: "Canceled",
-  },
-];
+import { Currencies, Currency } from "@/lib/currency";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import SkeletonWrapper from "../skeletonWrapper/SkeletonWrapper";
+import { UserSettings } from "@prisma/client";
+import { UpdateUserCurrency } from "@/app/onboarding/_actions/userSettings";
+import { toast } from "sonner";
 
 export function CurrencySelector() {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(
+  const [selectedOption, setSelectedOption] = React.useState<Currency | null>(
     null
+  );
+
+  const userSettings = useQuery<UserSettings>({
+    queryKey: ["userSettings"],
+    queryFn: () => fetch("/api/user-settings").then((res) => res.json()),
+  });
+
+  React.useEffect(() => {
+    if (!userSettings.data) return;
+    const userCurrency = Currencies.find(
+      (currency) => currency.value === userSettings.data.currency
+    );
+
+    if (userCurrency) setSelectedOption(userCurrency);
+  }, [userSettings.data]);
+
+  const mutation = useMutation({
+    mutationFn: UpdateUserCurrency,
+  });
+
+  const selectOption = React.useCallback(
+    (currency: Currency | null | undefined) => {
+      if (!currency) {
+        toast.error("Please select a currency");
+        return;
+      }
+
+      toast.loading("Updating currency...", {
+        id: "update-currency",
+      });
+
+      mutation.mutate(currency?.value, {
+        onSuccess: (data: UserSettings) => {
+          toast.success("Currency updated", {
+            id: "update-currency",
+          });
+
+          setSelectedOption(
+            Currencies.find((c) => c.value === data.currency) || null
+          );
+        },
+        onError: () => {
+          toast.error("Failed to update currency", {
+            id: "update-currency",
+          });
+        },
+      });
+    },
+    [mutation]
   );
 
   if (isDesktop) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[150px] justify-start">
-            {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0" align="start">
-          <StatusList setOpen={setOpen} setSelectedStatus={setSelectedStatus} />
-        </PopoverContent>
-      </Popover>
+      <SkeletonWrapper isLoading={userSettings.isFetching}>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-fit justify-start"
+              disabled={mutation.isPending}
+            >
+              {selectedOption ? (
+                <>{selectedOption.label}</>
+              ) : (
+                <>+ Choose your preferred Currency</>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <CurrencyOptionList
+              setOpen={setOpen}
+              setSelectedOption={selectOption}
+            />
+          </PopoverContent>
+        </Popover>
+      </SkeletonWrapper>
     );
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="outline" className="w-[150px] justify-start">
-          {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <div className="mt-4 border-t">
-          <StatusList setOpen={setOpen} setSelectedStatus={setSelectedStatus} />
-        </div>
-      </DrawerContent>
-    </Drawer>
+    <SkeletonWrapper isLoading={userSettings.isFetching}>
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            disabled={mutation.isPending}
+          >
+            {selectedOption ? <>{selectedOption.label}</> : <>+ Set Currency</>}
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent>
+          <div className="mt-4 border-t">
+            <CurrencyOptionList
+              setOpen={setOpen}
+              setSelectedOption={selectOption}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </SkeletonWrapper>
   );
 }
 
-function StatusList({
+function CurrencyOptionList({
   setOpen,
-  setSelectedStatus,
+  setSelectedOption,
 }: {
   setOpen: (open: boolean) => void;
-  setSelectedStatus: (status: Status | null) => void;
+  setSelectedOption: (status: Currency | null) => void;
 }) {
   return (
     <Command>
@@ -94,18 +143,19 @@ function StatusList({
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup>
-          {statuses.map((status) => (
+          {Currencies.map(({ value, label }: Currency) => (
             <CommandItem
-              key={status.value}
-              value={status.value}
+              key={value}
+              value={value}
               onSelect={(value) => {
-                setSelectedStatus(
-                  statuses.find((priority) => priority.value === value) || null
+                setSelectedOption(
+                  Currencies.find((priority) => priority.value === value) ||
+                    null
                 );
                 setOpen(false);
               }}
             >
-              {status.label}
+              {label}
             </CommandItem>
           ))}
         </CommandGroup>

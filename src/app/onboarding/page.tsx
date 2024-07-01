@@ -10,8 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import CurrencySeletor from '../../components/si'
-
+import { CurrencySelector } from "@/components/currencySelector/CurrencySelector";
 async function Page() {
   const user = await currentUser();
   if (!user) {
@@ -43,7 +42,7 @@ async function Page() {
 
       <Separator />
       <Button className="w-full" asChild>
-        <Link href="/">Go To Dashboard</Link>
+        <Link href="/dashboard">Go To Dashboard</Link>
       </Button>
     </div>
   );

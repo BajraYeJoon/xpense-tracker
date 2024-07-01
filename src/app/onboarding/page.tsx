@@ -22,7 +22,7 @@ async function Page() {
         Welcome to the onboarding page! {user.fullName}
       </h1>
       <h2 className="mt-4 text-center text-base text-muted-foreground">
-        Let's get you started with your new account.
+        Let&apos;s get you started with your new account.
       </h2>
 
       <h3>You can change this page anytime.</h3>

@@ -42,7 +42,7 @@ async function Page() {
 
       <Separator />
       <Button className="w-full" asChild>
-        <Link href="/">Go To Dashboard</Link>
+        <Link href="/dashboard">Go To Dashboard</Link>
       </Button>
     </div>
   );

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import CategoryList from "./CategoryList";
 import { PopoverContent } from "@radix-ui/react-popover";
 import { Command, CommandInput } from "@/components/ui/command";
+import CreateTransactionDialog from "./CreateTransactionDialog";
+import CreateCategoryDialog from "./CreateCategoryDialog";
 
 interface CategoryPickerProps {
   type: TransactionType;
@@ -51,6 +53,7 @@ const CategoryPicker = ({ type }: CategoryPickerProps) => {
           }}
         >
           <CommandInput placeholder="Search Category..." />
+          <CreateCategoryDialog type={type} />
         </Command>
       </PopoverContent>
     </Popover>

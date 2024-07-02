@@ -10,8 +10,10 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -32,6 +34,10 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverContent } from "@radix-ui/react-popover";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { useMutation } from "@tanstack/react-query";
+import { CreateCategory } from "../_actions/categories";
+import { Category } from "@prisma/client";
+import { toast } from "sonner";
 
 interface CreateCategoryDialogProps {
   type: TransactionType;
@@ -43,6 +49,21 @@ function CreateCategoryDialog({ type }: CreateCategoryDialogProps) {
     resolver: zodResolver(CreateCategorySchema),
     defaultValues: {
       type,
+    },
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: CreateCategory,
+    onSuccess: (data: Category) => {
+      form.reset({
+        name: "",
+        icon: "",
+        type,
+      });
+
+      toast.success(`Category ${data.name} created successfully`, {
+        id: "create-category",
+      });
     },
   });
 
@@ -139,6 +160,20 @@ function CreateCategoryDialog({ type }: CreateCategoryDialogProps) {
             ></FormField>
           </form>
         </Form>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant={"destructive"}
+              onClick={() => {
+                form.reset();
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button>Save</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

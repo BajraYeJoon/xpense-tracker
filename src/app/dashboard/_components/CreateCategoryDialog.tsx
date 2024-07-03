@@ -6,7 +6,7 @@ import {
   CreateCategorySchema,
 } from "@/schemas/categories";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -19,7 +19,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CircleOffIcon, CrossIcon, PlusSquareIcon } from "lucide-react";
+import {
+  CircleOffIcon,
+  CrossIcon,
+  LoaderCircle,
+  PlusSquareIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Form,
@@ -34,7 +39,7 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverContent } from "@radix-ui/react-popover";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateCategory } from "../_actions/categories";
 import { Category } from "@prisma/client";
 import { toast } from "sonner";
@@ -52,9 +57,11 @@ function CreateCategoryDialog({ type }: CreateCategoryDialogProps) {
     },
   });
 
+  const queryClient = useQueryClient();
+
   const { mutate, isPending } = useMutation({
     mutationFn: CreateCategory,
-    onSuccess: (data: Category) => {
+    onSuccess: async (data: Category) => {
       form.reset({
         name: "",
         icon: "",
@@ -64,8 +71,32 @@ function CreateCategoryDialog({ type }: CreateCategoryDialogProps) {
       toast.success(`Category ${data.name} created successfully`, {
         id: "create-category",
       });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["categories"],
+      });
+
+      setOpen((prev) => !prev);
+    },
+
+    onError: (err) => {
+      toast.error("An error occurred while creating the category", {
+        id: "create-category",
+      });
+
+      console.log(err);
     },
   });
+
+  const onSubmit = useCallback(
+    (data: CreateCategorySchemaType) => {
+      toast.loading("Creating category...", {
+        id: "create-category",
+      });
+      mutate(data);
+    },
+    [mutate]
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -96,7 +127,7 @@ function CreateCategoryDialog({ type }: CreateCategoryDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form className="space-y-3">
+          <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -172,7 +203,9 @@ function CreateCategoryDialog({ type }: CreateCategoryDialogProps) {
               Cancel
             </Button>
           </DialogClose>
-          <Button>Save</Button>
+          <Button onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
+            {isPending ? <LoaderCircle className="animate-spin" /> : "Create"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
